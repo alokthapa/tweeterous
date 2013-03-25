@@ -1,6 +1,13 @@
 (ql:quickload "xmls")
 (ql:quickload "csv-parser")
 (ql:quickload "cl-fad")
+(ql:quickload "cl-who")
+
+(defpackage :tweeterous
+  (:use :common-lisp
+        :cl-who))
+
+(in-package :tweeterous)
 
 (defvar *db* (list))
 
@@ -158,25 +165,82 @@
 
 (defun sort-db ()
   (setf *db* (sort *db* #'(lambda (x y)
-                            (< (getf x :date )
+                            (> (getf x :date )
                                (getf y :date))))))
 
 
 ;;test files
-(add-all-tweets "/home/alokt/projs/oldtweets/data/csv")
-(handle-posterous-import "/home/alokt/projs/posts/space-90361-musicr-0f10ad91ea9a92bc941030127eb97fca/wordpress_export_1.xml")
-(handle-posterous-import "/home/alokt/projs/posts/space-155959-progprog-083048e7be3c4e8aed8f97677dbd4e24/wordpress_export_1.xml")
+;; (add-all-tweets "/home/alokt/projs/oldtweets/data/csv")
+;; (handle-posterous-import "/home/alokt/projs/posts/space-90361-musicr-0f10ad91ea9a92bc941030127eb97fca/wordpress_export_1.xml")
+;; (handle-posterous-import "/home/alokt/projs/posts/space-155959-progprog-083048e7be3c4e8aed8f97677dbd4e24/wordpress_export_1.xml")
+
+;; <html>
+;;   <head>
+;;     <title>Bootstrap 101 Template</title>
+;;     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+;;     <!-- Bootstrap -->
+;;     <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+;;   </head>
+;;   <body>
+;;     <h1>Hello, world!</h1>
+;;     <script src="http://code.jquery.com/jquery.js"></script>
+;;     <script src="js/bootstrap.min.js"></script>
+;;   </body>
+;; </html>
 
 
+(defmacro bootstrap-page (title &body body)
+  `(with-html-output-to-string (*standard-output* nil :prologue t :indent t)
+     (:html :xmlns "http://www.w3.org/1999/xhtml"
+            :xml\:lang "en" 
+            :lang "en"
+            (:head 
+             (:meta :http-equiv "Content-Type" 
+                    :content    "text/html;charset=utf-8")
+             (:meta :name "viewport"
+                    :content "width=device-width,initialscale=1.0")
+             (:title ,title)
+             (:link :href "css/bootstrap.min.css"
+                    :rel "stylesheet"
+                    :media "screen")
+            (:body 
+             (:div :class "container"
+                   ,@body)
+             (:script :src "http://code.jquery.com/jquery.js")
+             (:script :src "js/bootstrap.min.js"))))))
 
-  
+
+(defun write-blog-file (name)
+  (with-open-file (stream1 name 
+                           :direction :output
+                           :if-exists :overwrite
+                           :if-does-not-exist :create )
+    (format stream1 
+            "~a"
+            (bootstrap-page "All"
+              (mapcar #'(lambda (tweet)
+                          (get-html-for-tweet *standard-output* tweet))
+                      *db*)))))
 
 
+(defun map-db-to-html (str)
+  (bootstrap-page "All Posts" str
+    (mapcar #'(lambda (tweet)
+                (get-html-for-tweet str tweet))
+            *db*)))
+
+(defun get-html-for-tweet (stream tweet)
+  (with-html-output (stream nil :indent t)
+      (:div 
+       (:h3 (str (getf tweet :title)))
+       (:p (str (concatenate 'string "Posted on " (prin1-to-string (getf tweet :date)))))
+       (:p (str (getf tweet :text))))))
 
 
-
-        
-        
-    
-
-
+(defun get-html-for-post (post)
+  (with-html-output (*standard-output* nil :indent t)
+    (:div 
+     (:h3 (str (getf post :title)))
+     (:p (str (concatenate 'string "Posted on " (prin1-to-string (getf post :date)))))
+     (:p (str (getf post :text))))))
+                    
