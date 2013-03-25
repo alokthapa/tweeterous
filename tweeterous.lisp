@@ -95,7 +95,7 @@
          :comments (get-comments item))
         *db*))
 
-(defun handle-posterous-export (file)
+(defun handle-posterous-import (file)
   (if (probe-file file)
       (progn
         (mapc #'(lambda (item)
@@ -109,14 +109,10 @@
   (let ((file (read-line)))
     (if (string/= file "")
         (progn
-          (handle-posterous-export file)
+          (handle-posterous-import file)
           (prompt-post-path)))))
 
 ;; read tweets
-
-(defparameter tweetcsv "/home/alokt/projs/oldtweets/data/csv/2007_10.csv")
-
-(defparameter tweetstr (file-string tweetcsv))
 
 (defun parse-tweet-date (times)
   (destructuring-bind (date time zone) (split-by times #\Space) 
@@ -155,14 +151,22 @@
     (if (cl-fad:directory-exists-p path)
         (add-all-tweets path))))
 
-
 (defun top-prompt ()
   (progn
     (prompt-tweet-path)
     (prompt-post-path)))
-        
-   
-  
+
+(defun sort-db ()
+  (setf *db* (sort *db* #'(lambda (x y)
+                            (< (getf x :date )
+                               (getf y :date))))))
+
+
+;;test files
+(add-all-tweets "/home/alokt/projs/oldtweets/data/csv")
+(handle-posterous-import "/home/alokt/projs/posts/space-90361-musicr-0f10ad91ea9a92bc941030127eb97fca/wordpress_export_1.xml")
+(handle-posterous-import "/home/alokt/projs/posts/space-155959-progprog-083048e7be3c4e8aed8f97677dbd4e24/wordpress_export_1.xml")
+
 
 
   
