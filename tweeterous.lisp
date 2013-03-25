@@ -57,7 +57,7 @@
                         item)))
     (mapcar #'(lambda (comment)
                 (list :author (get-comment-author comment)
-                      :date (parse-time (get-comment-date comment))
+                      :date (parse-post-date (get-comment-date comment))
                       :text (get-comment-text comment)))
             comments)))
 
@@ -99,7 +99,7 @@
   (if (probe-file file)
       (progn
         (mapc #'(lambda (item)
-                    (add-to-db item))
+                    (add-post-to-db item))
                 (get-posts (parse-file file)))
         (print "successfully imported file"))
       (print "could not find the file")))
@@ -110,7 +110,7 @@
     (if (string/= file "")
         (progn
           (handle-posterous-export file)
-          (prompt-path)))))
+          (prompt-post-path)))))
 
 ;; read tweets
 
