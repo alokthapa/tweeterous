@@ -1,5 +1,6 @@
 (ql:quickload "xmls")
 (ql:quickload "csv-parser")
+(ql:quickload "cl-fad")
 
 (defvar *db* (list))
 
